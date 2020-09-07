@@ -8,8 +8,20 @@ $countryCode = $inputArr[1];
 
 // FETCH API DATA
 $apiKey = '16b8985dd4d01e5dda0af6d392345499';
-$urlWeather = 'https://api.openweathermap.org/data/2.5/weather?q=' . $city . ',' . $countryCode . '&appid=' . $apiKey;
-$urlForecast = 'https://api.openweathermap.org/data/2.5/forecast?q=' . $city . ',' . $countryCode . '&appid=' . $apiKey;
+$urlWeather =
+  'https://api.openweathermap.org/data/2.5/weather?q=' .
+  $city .
+  ',' .
+  $countryCode .
+  '&appid=' .
+  $apiKey;
+$urlForecast =
+  'https://api.openweathermap.org/data/2.5/forecast?q=' .
+  $city .
+  ',' .
+  $countryCode .
+  '&appid=' .
+  $apiKey;
 $weatherData = file_get_contents($urlWeather);
 $forecastData = file_get_contents($urlForecast);
 
@@ -17,25 +29,46 @@ $forecastData = file_get_contents($urlForecast);
 $weatherArr = json_decode($weatherData, true);
 
 $time = $weatherArr['dt'];
+$this_time = date("h:i");
+$city_name = $weatherArr['name'];
 $description = $weatherArr['weather'][0]['description'];
 $icon = $weatherArr['weather'][0]['icon'];
-
-$temp = $weatherArr['main']['temp'];
-$temp_feels = $weatherArr['main']['feels_like'];
-$temp_min = $weatherArr['main']['temp_min'];
-$temp_max = $weatherArr['main']['temp_max'];
-
+$temp = convertTemp($weatherArr['main']['temp']);
+$temp_feels = convertTemp($weatherArr['main']['feels_like']);
+$temp_min = convertTemp($weatherArr['main']['temp_min']);
+$temp_max = convertTemp($weatherArr['main']['temp_max']);
 $humidity = $weatherArr['main']['humidity'];
-$pressure = $weatherArr['main']['pressure'];
+$land_pressure = $weatherArr['main']['pressure'];
 $clouds = $weatherArr['clouds']['all'];
-
-$wind_speed = $weatherArr['wind']['speed'];
+$wind_speed = number_format($weatherArr['wind']['speed'], 0);
 $wind_deg = $weatherArr['wind']['deg'];
+
 
 // DECONSTRUCT FORECAST DATA
 $forecastArr = json_decode($forecastData, true);
-// TODO: extract forecast data
+$sea_pressure = $forecastArr['list'][0]['main']['sea_level'];
+$rain_percentage = $forecastArr['list'][0]['pop'] * 100;
+$visibility = $forecastArr['list'][0]['visibility'] / 1000;
 
+
+
+// DYNAMIC CLASS HANDLING
+if ($city) {
+  $classBoxLeft = "";
+} else {
+  $classBoxLeft = "hidden";
+}
+
+// --------- //
+// FUNCTIONS //
+// --------- //
+
+function convertTemp($kelvin)
+{
+  //convert from degree kelvin to degree celsius
+  $celsius = number_format($kelvin - 273.15, 0);
+  return $celsius;
+}
 
 
 ?>
@@ -66,29 +99,23 @@ $forecastArr = json_decode($forecastData, true);
 
 <body class="container box-border mx-auto bg-gray-300">
   <!-- <header class="m-5 font-bold text-center text-gray-500">Weather App</header> -->
-  <nav class="">
+  <nav class="hidden">
     <div id="controlsDiv" class="flex justify-center my-5 align-middle">
-      <div id="forecastControl"
-        class="p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer"
-        title="See the 5 day forecast">
+      <div id="forecastControl" class="p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer" title="See the 5 day forecast">
         <p class="inline mr-1 text-white">
           forecast
         </p>
         <input id="forecastCheck" class="hidden cursor-pointer" type="checkbox" />
       </div>
 
-      <div id="compareControl"
-        class="hidden p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer md:inline"
-        title="Compare 2 cities next to each other.">
+      <div id="compareControl" class="hidden p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer md:inline" title="Compare 2 cities next to each other.">
         <p class="inline mr-1 text-white">
           compare
         </p>
         <input id="compareCheck" class="hidden cursor-pointer" type="checkbox" />
       </div>
 
-      <div id="photosControl"
-        class="hidden p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer md:inline"
-        title="See local photo's of the city.">
+      <div id="photosControl" class="hidden p-2 px-4 m-2 bg-blue-500 border border-white rounded-full shadow-md cursor-pointer md:inline" title="See local photo's of the city.">
         <p class="inline mr-1 text-white">
           photos
         </p>
@@ -97,95 +124,84 @@ $forecastArr = json_decode($forecastData, true);
     </div>
   </nav>
 
-  <main class="">
+  <main class="mt-10">
     <!-- COMPARE LEFT PANEL -->
     <div id="compareLeft" class="mx-2">
       <form name="form" action="" method="post">
-        <div id="inputDivLeft"
-          class="relative max-w-sm p-5 mx-auto mb-16 bg-gray-100 border rounded-lg shadow-md sm:mb-32 lg:mb-32 hover:shadow-lg">
+        <div id="inputDivLeft" class="relative max-w-sm p-5 mx-auto mb-16 bg-gray-100 border rounded-lg shadow-md sm:mb-32 lg:mb-32 hover:shadow-lg">
           <div class="flex flex-wrap items-center justify-between py-2 border-b border-teal-500">
-            <input id="inputLeft" name="inputLeft" type="search" placeholder="City name"
-              value=<?php echo '"' . $inputStr . '"' ?>
-              class="px-2 py-1 leading-tight text-left text-gray-700 bg-transparent border-none appearance-none focus:outline-none" />
-            <button id="submitLeft" value="Left" type="submit"
-              class="absolute right-0 px-3 py-1 text-sm text-white transform -translate-x-4 bg-teal-500 border-4 border-teal-500 rounded SUBMIT hover:bg-teal-700 hover:border-teal-700">
+            <input id="inputLeft" name="inputLeft" type="search" placeholder="City name" value=<?php echo '"' . $inputStr . '"'; ?> class="px-2 py-1 leading-tight text-left text-gray-700 bg-transparent border-none appearance-none focus:outline-none" />
+            <button id="submitLeft" value="Left" type="submit" class="absolute right-0 px-3 py-1 text-sm text-white transform -translate-x-4 bg-teal-500 border-4 border-teal-500 rounded SUBMIT hover:bg-teal-700 hover:border-teal-700">
               Go
             </button>
           </div>
         </div>
       </form>
 
-      <div id="weatherBoxLeft" class="relative hidden">
+      <div id="weatherBoxLeft" class=<?php echo '"relative ' .
+                                        $classBoxLeft .
+                                        '"'; ?>>
         <!-- WEATHER ICON -->
-        <img id="weatherIconLeft"
-          class="absolute left-0 right-0 z-20 w-24 p-2 mx-auto transition duration-700 transform -translate-y-12 sm:-translate-y-24 sm:w-40 easy-linear hover:scale-110"
-          src="img/forecast/sun.svg" alt="Current weather state icon" />
+        <img id="weatherIconLeft" class="absolute left-0 right-0 z-20 w-24 p-2 mx-auto transition duration-700 transform -translate-y-12 sm:-translate-y-24 sm:w-40 easy-linear hover:scale-110" src="img/forecast/sun.svg" alt="Current weather state icon" />
 
         <!-- CURRENT -->
-        <div id="current"
-          class="grid items-center max-w-xl grid-cols-6 grid-rows-3 gap-2 p-4 mx-auto text-center text-white bg-gray-800 rounded-lg shadow-lg">
+        <div id="current" class="grid items-center max-w-xl grid-cols-6 grid-rows-3 gap-2 p-4 mx-auto text-center text-white bg-gray-800 rounded-lg shadow-lg">
           <!-- TEMP -->
-          <div id="tempLeft"
-            class="col-start-3 col-end-5 row-start-2 p-0 text-5xl font-bold transform -translate-y-4 sm:-translate-y-6 sm:text-6xl">
-            XX°
+          <div id="tempLeft" class="col-start-3 col-end-5 row-start-2 p-0 text-5xl font-bold transform -translate-y-4 sm:-translate-y-6 sm:text-6xl">
+            <?php echo $temp; ?>°
           </div>
           <!-- MIN -->
           <div class="self-start col-start-1 row-start-1 bg-blue-500 border border-white rounded-l-lg shadow">
             <p class="text-xs text-gray-300">min</p>
-            <p id="minLeft">XX°</p>
+            <p id="minLeft"><?php echo $temp_min; ?>°</p>
           </div>
           <!-- MAX -->
           <div class="self-start col-start-2 row-start-1 bg-red-500 border border-white rounded-r-lg shadow">
             <p class="text-xs text-gray-300">max</p>
-            <p id="maxLeft">XX°</p>
+            <p id="maxLeft"><?php echo $temp_max; ?>°</p>
           </div>
           <!-- FEELS -->
-          <div
-            class="self-start col-start-5 col-end-7 row-start-1 bg-indigo-800 border border-gray-600 rounded-lg shadow">
+          <div class="self-start col-start-5 col-end-7 row-start-1 bg-indigo-800 border border-gray-600 rounded-lg shadow">
             <p class="text-xs text-gray-300">feels like</p>
-            <p id="feelsLeft">XX°</p>
+            <p id="feelsLeft"><?php echo $temp_feels; ?>°</p>
           </div>
           <!-- TIME & CITY -->
           <div class="col-start-1 col-end-3 row-start-2">
-            <p id="thisTimeLeft" class="text-xl font-bold sm:text-4xl">HH:MM</p>
-            <p id="thisCityLeft" class="text-sm font-bold sm:text-2xl">City</p>
+            <p id="thisTimeLeft" class="text-xl font-bold sm:text-4xl"><?php echo $this_time; ?></p>
+            <p id="thisCityLeft" class="text-sm font-bold sm:text-2xl"><?php echo $city_name; ?></p>
           </div>
           <!-- RAIN & CLOUD PROB -->
           <div class="col-start-5 row-start-2 text-xs">
             <p class="text-gray-600">rain</p>
             <p id="probRainLeft" class="text-lg">
-              XX
+              <?php echo $rain_percentage; ?>
             </p>
             <span class="text-xs text-gray-500">%</span>
           </div>
           <div class="col-start-6 row-start-2 text-xs">
             <p class="text-gray-600">clouds</p>
             <p id="probCloudLeft" class="text-lg">
-              XX
+              <?php echo $clouds; ?>
             </p>
             <span class="text-xs text-gray-500">%</span>
           </div>
           <!-- HUMIDITY & VISIBILITY -->
           <div class="col-start-1 row-start-3 p-1 text-xs bg-gray-900 border border-gray-600 rounded-l-lg shadow">
             <p class="text-gray-600">humid</p>
-            <p id="humidityLeft" class="text-base">XX</p>
+            <p id="humidityLeft" class="text-base"><?php echo $humidity; ?></p>
             <p class="text-gray-500">%</p>
           </div>
           <div class="col-start-2 row-start-3 p-1 text-xs bg-gray-900 border border-gray-600 rounded-r-lg shadow">
             <p class="text-gray-600">sight</p>
-            <p id="visibilityLeft" class="text-base">XX</p>
-            <p class="text-gray-500">m</p>
+            <p id="visibilityLeft" class="text-base"><?php echo $visibility; ?></p>
+            <p class="text-gray-500">km</p>
           </div>
           <!-- WIND -->
-          <div
-            class="relative col-start-3 col-end-5 row-start-3 row-end-4 p-1 mx-auto text-white duration-700 ease-in-out transform bg-gray-700 rounded-full shadow-md hover:scale-150">
-            <img title="N E S W" src="img/forecast/nesw.svg" class="z-10 w-16 mx-auto rounded-full"
-              alt="Wind rose icon pointing in wind direction" />
-            <img id="windDegLeft" src="img/forecast/windrose.svg"
-              class="absolute top-0 left-0 right-0 z-20 w-16 mx-auto duration-1000 ease-linear transform translate-y-1 rounded-full"
-              alt="Wind rose icon pointing in wind direction" />
+          <div class="relative col-start-3 col-end-5 row-start-3 row-end-4 p-1 mx-auto text-white duration-700 ease-in-out transform bg-gray-700 rounded-full shadow-md hover:scale-150">
+            <img title="N E S W" src="img/forecast/nesw.svg" class="z-10 w-16 mx-auto rounded-full" alt="Wind rose icon pointing in wind direction" />
+            <img id="windDegLeft" src="img/forecast/windrose.svg" class="absolute top-0 left-0 right-0 z-20 w-16 mx-auto duration-1000 ease-linear transform translate-y-1 rounded-full" alt="Wind rose icon pointing in wind direction" />
             <div class="absolute top-0 left-0 right-0 mx-auto transform translate-y-5">
-              <p id="windSpeedLeft" class="z-30 text-lg">XX</p>
+              <p id="windSpeedLeft" class="z-30 text-lg"><?php echo $wind_speed; ?></p>
               <p class="z-30 text-xs text-gray-500 transform -translate-y-2">m/s</p>
             </div>
           </div>
@@ -195,7 +211,7 @@ $forecastArr = json_decode($forecastData, true);
               sea
             </p>
             <p id="presSeaLeft" class="text-base">
-              XX
+              <?php echo $sea_pressure; ?>
             </p>
             <p class="text-gray-500">hPa</p>
           </div>
@@ -204,7 +220,7 @@ $forecastArr = json_decode($forecastData, true);
               land
             </p>
             <p id="presLandLeft" class="text-base">
-              XX
+              <?php echo $land_pressure; ?>
             </p>
             <p class="text-gray-500">hPa</p>
           </div>
@@ -212,29 +228,23 @@ $forecastArr = json_decode($forecastData, true);
         <!-- STATUS -->
         <div class="text-center">
           <div class="z-10 max-w-xs p-2 px-10 mx-auto -m-3 text-center text-white bg-gray-800 rounded-b-full shadow-md">
-            <span id="statusLeft">XXX</span>
+            <span id="statusLeft"><?php echo $description; ?></span>
             <img id="statusIconLeft" class="inline w-8" src="img/status/default.svg" alt="" title="" />
           </div>
         </div>
 
         <!-- FORECAST -->
-        <div id="forecastLeft"
-          class="flex-wrap justify-between hidden max-w-xl p-4 mx-auto mt-6 text-xs text-center text-white bg-gray-800 rounded-lg shadow-md">
+        <div id="forecastLeft" class="flex-wrap justify-between hidden max-w-xl p-4 mx-auto mt-6 text-xs text-center text-white bg-gray-800 rounded-lg shadow-md">
         </div>
       </div>
     </div>
 
     <!-- COMPARE RIGHT PANEL -->
     <div id="compareRight" class="hidden mx-2">
-      <div id="inputDivRight"
-        class="relative p-5 mx-auto mb-16 bg-gray-100 border rounded-lg shadow-md sm:max-w-sm sm:mb-32 lg:mb-32 hover:shadow-lg">
+      <div id="inputDivRight" class="relative p-5 mx-auto mb-16 bg-gray-100 border rounded-lg shadow-md sm:max-w-sm sm:mb-32 lg:mb-32 hover:shadow-lg">
         <div class="flex flex-wrap items-center justify-between py-2 border-b border-teal-500">
-          <input id="inputRight"
-            class="px-2 py-1 leading-tight text-left text-gray-700 bg-transparent border-none appearance-none focus:outline-none"
-            type="text" placeholder="City name" />
-          <button id="submitRight" value="Right"
-            class="absolute right-0 px-3 py-1 text-sm text-white transform -translate-x-4 bg-teal-500 border-4 border-teal-500 rounded SUBMIT hover:bg-teal-700 hover:border-teal-700"
-            type="button">
+          <input id="inputRight" class="px-2 py-1 leading-tight text-left text-gray-700 bg-transparent border-none appearance-none focus:outline-none" type="text" placeholder="City name" />
+          <button id="submitRight" value="Right" class="absolute right-0 px-3 py-1 text-sm text-white transform -translate-x-4 bg-teal-500 border-4 border-teal-500 rounded SUBMIT hover:bg-teal-700 hover:border-teal-700" type="button">
             Go
           </button>
         </div>
@@ -242,16 +252,12 @@ $forecastArr = json_decode($forecastData, true);
 
       <div id="weatherBoxRight" class="relative hidden">
         <!-- WEATHER ICON -->
-        <img id="weatherIconRight"
-          class="absolute left-0 right-0 z-20 w-24 p-2 mx-auto transition duration-700 transform -translate-y-12 sm:-translate-y-24 sm:w-40 easy-linear hover:scale-110"
-          src="img/forecast/sun.svg" alt="Current weather state icon" />
+        <img id="weatherIconRight" class="absolute left-0 right-0 z-20 w-24 p-2 mx-auto transition duration-700 transform -translate-y-12 sm:-translate-y-24 sm:w-40 easy-linear hover:scale-110" src="img/forecast/sun.svg" alt="Current weather state icon" />
 
         <!-- CURRENT -->
-        <div id="current"
-          class="grid items-center max-w-xl grid-cols-6 grid-rows-3 gap-2 p-4 mx-auto text-center text-white bg-gray-800 rounded-lg shadow-lg">
+        <div id="current" class="grid items-center max-w-xl grid-cols-6 grid-rows-3 gap-2 p-4 mx-auto text-center text-white bg-gray-800 rounded-lg shadow-lg">
           <!-- TEMP -->
-          <div id="tempRight"
-            class="col-start-3 col-end-5 row-start-2 p-0 text-5xl font-bold transform -translate-y-4 sm:-translate-y-6 sm:text-6xl">
+          <div id="tempRight" class="col-start-3 col-end-5 row-start-2 p-0 text-5xl font-bold transform -translate-y-4 sm:-translate-y-6 sm:text-6xl">
             XX°
           </div>
           <!-- MIN -->
@@ -265,8 +271,7 @@ $forecastArr = json_decode($forecastData, true);
             <p id="maxRight">XX°</p>
           </div>
           <!-- FEELS -->
-          <div
-            class="self-start col-start-5 col-end-7 row-start-1 bg-indigo-800 border border-gray-600 rounded-lg shadow">
+          <div class="self-start col-start-5 col-end-7 row-start-1 bg-indigo-800 border border-gray-600 rounded-lg shadow">
             <p class="text-xs text-gray-300">feels like</p>
             <p id="feelsRight">XX°</p>
           </div>
@@ -302,13 +307,9 @@ $forecastArr = json_decode($forecastData, true);
             <p class="text-gray-500">m</p>
           </div>
           <!-- WIND -->
-          <div
-            class="relative col-start-3 col-end-5 row-start-3 row-end-4 p-1 mx-auto text-white duration-700 ease-in-out transform bg-gray-700 rounded-full shadow-md hover:scale-150">
-            <img title="N E S W" src="img/forecast/nesw.svg" class="z-10 w-16 mx-auto rounded-full"
-              alt="Wind rose icon pointing in wind direction" />
-            <img id="windDegRight" src="img/forecast/windrose.svg"
-              class="absolute top-0 left-0 right-0 z-20 w-16 mx-auto duration-1000 ease-linear transform translate-y-1 rounded-full"
-              alt="Wind rose icon pointing in wind direction" />
+          <div class="relative col-start-3 col-end-5 row-start-3 row-end-4 p-1 mx-auto text-white duration-700 ease-in-out transform bg-gray-700 rounded-full shadow-md hover:scale-150">
+            <img title="N E S W" src="img/forecast/nesw.svg" class="z-10 w-16 mx-auto rounded-full" alt="Wind rose icon pointing in wind direction" />
+            <img id="windDegRight" src="img/forecast/windrose.svg" class="absolute top-0 left-0 right-0 z-20 w-16 mx-auto duration-1000 ease-linear transform translate-y-1 rounded-full" alt="Wind rose icon pointing in wind direction" />
             <div class="absolute top-0 left-0 right-0 mx-auto transform translate-y-5">
               <p id="windSpeedRight" class="z-30 text-lg">XX</p>
               <p class="z-30 text-xs text-gray-500 transform -translate-y-2">m/s</p>
@@ -343,8 +344,7 @@ $forecastArr = json_decode($forecastData, true);
         </div>
 
         <!-- FORECAST -->
-        <div id="forecastRight"
-          class="flex-wrap justify-between hidden max-w-xl p-4 mx-auto mt-6 text-xs text-center text-white bg-gray-800 rounded-lg shadow-md">
+        <div id="forecastRight" class="flex-wrap justify-between hidden max-w-xl p-4 mx-auto mt-6 text-xs text-center text-white bg-gray-800 rounded-lg shadow-md">
         </div>
       </div>
     </div>
@@ -356,15 +356,12 @@ $forecastArr = json_decode($forecastData, true);
   <aside></aside>
 
   <!-- ALERT POP UP BOX -->
-  <div id="alertDiv"
-    class="sticky bottom-0 hidden max-w-xl m-2 mx-auto text-white duration-1000 ease-linear transform bg-blue-700 border border-white rounded-lg shadow-md cursor-pointer">
+  <div id="alertDiv" class="sticky bottom-0 hidden max-w-xl m-2 mx-auto text-white duration-1000 ease-linear transform bg-blue-700 border border-white rounded-lg shadow-md cursor-pointer">
     <div class="p-4 rounded-md">
       <div class="flex">
         <div class="flex-shrink-0">
           <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
           </svg>
         </div>
         <div class="flex-1 ml-3 md:flex md:justify-between">
@@ -387,25 +384,18 @@ $forecastArr = json_decode($forecastData, true);
 
       <!-- FLATICONS -->
       <div class="flex justify-center md:order-2">
-        <a title="Good Ware - www.flaticon.com" href="https://www.flaticon.com/authors/good-ware"
-          class="ml-6 text-gray-400 hover:text-gray-500">
+        <a title="Good Ware - www.flaticon.com" href="https://www.flaticon.com/authors/good-ware" class="ml-6 text-gray-400 hover:text-gray-500">
           <span class="sr-only">FlatIcon</span>
-          <svg class="w-6 h-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <path fill-rule="evenodd"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              clip-rule="evenodd"></path>
+          <svg class="w-6 h-6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path fill-rule="evenodd" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" clip-rule="evenodd"></path>
           </svg>
         </a>
 
         <!-- GITHUB -->
-        <a title="View the source code!" href="https://github.com/WiseCoding/weather-app-php"
-          class="ml-6 text-gray-400 hover:text-gray-500">
+        <a title="View the source code!" href="https://github.com/WiseCoding/weather-app-php" class="ml-6 text-gray-400 hover:text-gray-500">
           <span class="sr-only">GitHub</span>
           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path fill-rule="evenodd"
-              d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-              clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
           </svg>
         </a>
       </div>
