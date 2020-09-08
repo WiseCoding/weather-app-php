@@ -1,7 +1,8 @@
 # Weather App PHP ☀️
 
-TODO: Update Project links
-[**Live Version**](https://wisecoding.github.io/weather-app-php/) - [Project]()
+[**Check Code**](https://github.com/WiseCoding/weather-app-php/tree/master/src)
+
+- To check the live version, clone the repo, open **./src/index.php** on your local server.
 
 # Assignment 📝
 
@@ -10,6 +11,8 @@ TODO: Update Project links
 > [Solo Assignment](https://github.com/becodeorg/gnt-yu-3-21/tree/master/3.The-Mountain/1.Weather-App) by [BeCode](https://becode.org/) 🎓
 
 ## Tasks
+
+- Convert the previous [JavaScript weather app](https://modern-js-app.netlify.app/) to a PHP weather application
 
 # The Team 👥
 
@@ -20,14 +23,7 @@ TODO: Update Project links
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Markdown](https://www.markdownguide.org/)
 - [PHP](https://www.php.net/)
-- [Tailwind](https://tailwindcss.com/)
-- [Webpack](https://webpack.js.org/)
-
-# Project Management 🔎
-
-TODO: Update Project links
-
-- [Project]()
+- [Tailwind CSS](https://tailwindcss.com/)
 
 # License 📎
 
